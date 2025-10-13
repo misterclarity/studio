@@ -28,10 +28,11 @@ export default function ItemDetailLayout({
   params: { id: string };
 }) {
   const [item, setItem] = useState<ExhibitItem | null>(null);
+  const { id } = params;
 
   useEffect(() => {
     async function fetchItem() {
-      const fetchedItem = await getExhibitItemById(params.id);
+      const fetchedItem = await getExhibitItemById(id);
       if (fetchedItem) {
         setItem(fetchedItem);
       } else {
@@ -39,7 +40,7 @@ export default function ItemDetailLayout({
       }
     }
     fetchItem();
-  }, [params.id]);
+  }, [id]);
 
 
   if (!item) {
