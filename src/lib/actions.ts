@@ -11,22 +11,13 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
   const photoDataUri = formData.get('image-data-uri') as string;
   const name = formData.get('name') as string;
   const description = formData.get('description') as string;
-  const file = formData.get('image') as File;
 
-  if (!photoDataUri && !file) {
-    return { error: 'No image file provided.' };
+  if (!photoDataUri) {
+    return { error: 'No image data provided.' };
   }
-
-  let dataUri = photoDataUri;
-  if (file) {
-    const buffer = await file.arrayBuffer();
-    const base64 = Buffer.from(buffer).toString('base64');
-    dataUri = `data:${file.type};base64,${base64}`;
-  }
-
 
   try {
-    const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri: dataUri, description });
+    const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri, description });
 
     const finalName = name || analysisResult.metadata.name || 'Untitled';
     const finalDescription = description || analysisResult.metadata.description || 'No description provided.';
@@ -34,7 +25,7 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
     const newItemData: Omit<ExhibitItem, 'id'> = {
       name: finalName,
       description: finalDescription,
-      images: [dataUri],
+      images: [photoDataUri],
       metadata: {
         ...analysisResult.metadata,
         name: finalName,
