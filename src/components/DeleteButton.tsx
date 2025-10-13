@@ -24,21 +24,23 @@ export function DeleteButton({ itemId }: { itemId: string }) {
 
   const handleDelete = async () => {
     setIsDeleting(true);
-    try {
-      await deleteExhibitItemAction(itemId);
-      toast({
-        title: 'Artifact Deleted',
-        description: 'The artifact has been successfully removed from the collection.',
-      });
-      // The action handles the redirection.
-    } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Deletion Failed',
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
-      });
-      setIsDeleting(false);
-      setIsOpen(false);
+    const result = await deleteExhibitItemAction(itemId);
+
+    if (result?.error) {
+        toast({
+            variant: 'destructive',
+            title: 'Deletion Failed',
+            description: result.error,
+        });
+        setIsDeleting(false);
+        setIsOpen(false);
+    } else {
+        toast({
+            title: 'Artifact Deleted',
+            description: 'The artifact has been successfully removed from the collection.',
+        });
+        // The server action handles the redirect, so we don't need to do anything here.
+        // We also don't need to set isDeleting to false, as the component will unmount.
     }
   };
 

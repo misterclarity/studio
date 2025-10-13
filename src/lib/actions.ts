@@ -20,7 +20,7 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
   try {
     const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri, description });
 
-    const finalName = name || analysisResult.metadata.name || 'Untitled';
+    const finalName = name || analysisResult.metadata.name || 'Untitled Artifact';
     const finalDescription = description || analysisResult.metadata.description || 'No description provided.';
     
     const newItemData: Omit<ExhibitItem, 'id'> = {
@@ -121,8 +121,12 @@ export async function updateImageAction(itemId: string, formData: FormData): Pro
   }
 }
 
-export async function deleteExhibitItemAction(itemId: string) {
-    await deleteExhibitItem(itemId);
-    revalidatePath('/');
+export async function deleteExhibitItemAction(itemId: string): Promise<{ error?: string }> {
+    try {
+        await deleteExhibitItem(itemId);
+        revalidatePath('/');
+    } catch (error) {
+        return { error: 'Failed to delete item.' };
+    }
     redirect('/');
 }
