@@ -1,10 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { analyzeExhibitImage, type AnalyzeExhibitImageOutput } from '@/ai/flows/analyze-exhibit-image';
 import { updateExhibitImage } from '@/ai/flows/update-exhibit-image';
 import { chatAboutExhibitContext } from '@/ai/flows/chat-about-exhibit-context';
-import { addExhibitItem, getExhibitItemById, updateExhibitItem } from './data';
+import { addExhibitItem, deleteExhibitItem, getExhibitItemById, updateExhibitItem } from './data';
 import type { ChatMessage, ExhibitItem, ExhibitMetadata } from './types';
 
 export async function analyzeImageAction(formData: FormData): Promise<{ error?: string, newItemId?: string }> {
@@ -118,4 +119,10 @@ export async function updateImageAction(itemId: string, formData: FormData): Pro
     }
     return { newInfoFound: false };
   }
+}
+
+export async function deleteExhibitItemAction(itemId: string) {
+    await deleteExhibitItem(itemId);
+    revalidatePath('/');
+    redirect('/');
 }

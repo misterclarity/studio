@@ -19,6 +19,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import type { ExhibitItem } from "@/lib/types";
+import { DeleteButton } from "./DeleteButton";
 
 export function ItemDetailView({ item, isTabsOnly = false }: { item: ExhibitItem, isTabsOnly?: boolean }) {
 
@@ -74,7 +75,10 @@ export function ItemDetailView({ item, isTabsOnly = false }: { item: ExhibitItem
             </Carousel>
         </DialogContent>
       </Dialog>
-      <h1 className="font-headline text-3xl lg:text-4xl font-bold mt-6 text-primary">{item.name}</h1>
+      <div className="flex justify-between items-start mt-6">
+        <h1 className="font-headline text-3xl lg:text-4xl font-bold text-primary">{item.name}</h1>
+        <DeleteButton itemId={item.id} />
+      </div>
       <p className="mt-2 text-lg text-foreground/80">{item.description}</p>
     </>
   );

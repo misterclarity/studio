@@ -59,3 +59,11 @@ export async function updateExhibitItem(id: string, updatedData: Partial<Exhibit
   }
   return undefined;
 }
+
+export async function deleteExhibitItem(id: string): Promise<void> {
+    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+    const itemIndex = exhibitItems.findIndex(item => item.id === id);
+    if (itemIndex > -1) {
+      exhibitItems.splice(itemIndex, 1);
+    }
+}
