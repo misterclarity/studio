@@ -6,11 +6,13 @@ declare global {
   var __exhibitItems: ExhibitItem[] | undefined;
 }
 
-// Ensure the collection is always reset to an empty array.
-const initialItems: ExhibitItem[] = [];
-global.__exhibitItems = initialItems;
+// Initialize the in-memory store only if it doesn't exist.
+// This prevents data from being wiped on every hot reload in development.
+if (!global.__exhibitItems) {
+  global.__exhibitItems = [];
+}
 
-const exhibitItems = global.__exhibitItems!;
+const exhibitItems = global.__exhibitItems;
 
 
 // Functions to interact with the in-memory store.
