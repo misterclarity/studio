@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "ExhibitItem": {
+      "title": "Exhibit Item",
+      "description": "Represents a single item in the museum collection.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the exhibit item."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the item."
+        },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "A list of image URLs for the item."
+        },
+        "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The timestamp when the item was created."
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "size": { "type": "string" },
+            "productionPeriod": { "type": "string" },
+            "productionCompany": { "type": "string" },
+            "materials": { "type": "string" },
+            "colors": { "type": "string" },
+            "weight": { "type": "string" },
+            "suggestedCollection": { "type": "string" },
+            "archivingMedium": { "type": "string" },
+            "topic": { "type": "string" },
+            "historicalContext": { "type": "string" }
+          }
+        }
+      },
+      "required": ["name", "description", "images", "createdAt"]
+    }
+  },
+  "auth": {
+    "providers": []
+  },
+  "firestore": {
+    "/exhibits/{exhibitId}": {
+      "schema": { "$ref": "#/entities/ExhibitItem" },
+      "description": "Stores all the exhibit items in the collection."
+    }
+  }
+}

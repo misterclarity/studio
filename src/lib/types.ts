@@ -19,6 +19,7 @@ export type ExhibitItem = {
   description: string;
   images: string[];
   metadata: ExhibitMetadata;
+  createdAt: string;
 };
 
 export type ChatMessage = {

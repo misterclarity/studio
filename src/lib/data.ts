@@ -1,65 +1,88 @@
+'use server';
+
 import type { ExhibitItem } from './types';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  orderBy,
+  limit
+} from 'firebase/firestore';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getFirebaseAdminApp } from '@/firebase/admin';
 
-// This is an in-memory store. Data will be lost on server restart.
-// We use a global to make it persistent across hot reloads in development.
-declare global {
-  var __exhibitItems: ExhibitItem[] | undefined;
-}
+// Initialize Firebase Admin for server-side operations
+const app = getFirebaseAdminApp();
+const db = getFirestore(app);
 
-// Initialize the in-memory store only if it doesn't exist.
-// This prevents data from being wiped on every hot reload in development.
-if (!global.__exhibitItems) {
-  global.__exhibitItems = [];
-}
+const EXHIBITS_COLLECTION = 'exhibits';
 
-const exhibitItems = global.__exhibitItems;
+export async function getExhibitItems(
+  searchQuery: string | null
+): Promise<ExhibitItem[]> {
+  const exhibitsCollection = collection(db, EXHIBITS_COLLECTION);
+  let q = query(exhibitsCollection, orderBy('createdAt', 'desc'), limit(50));
+  
+  const querySnapshot = await getDocs(q);
+  let items = querySnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  })) as ExhibitItem[];
 
-
-// Functions to interact with the in-memory store.
-// In a real application, these would interact with a database.
-
-export async function getExhibitItems(query: string | null): Promise<ExhibitItem[]> {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-  if (!query) {
-    return exhibitItems;
+  if (searchQuery) {
+    const lowercasedQuery = searchQuery.toLowerCase();
+    items = items.filter(item => 
+        (item.name && item.name.toLowerCase().includes(lowercasedQuery)) ||
+        (item.description && item.description.toLowerCase().includes(lowercasedQuery)) ||
+        (item.metadata && Object.values(item.metadata).some(val => 
+            typeof val === 'string' && val.toLowerCase().includes(lowercasedQuery)
+        ))
+    );
   }
-  const lowercasedQuery = query.toLowerCase();
-  return exhibitItems.filter(item => 
-    item.name.toLowerCase().includes(lowercasedQuery) ||
-    item.description.toLowerCase().includes(lowercasedQuery) ||
-    Object.values(item.metadata).some(val => 
-      typeof val === 'string' && val.toLowerCase().includes(lowercasedQuery)
-    )
-  );
+
+  return items;
 }
 
-export async function getExhibitItemById(id: string): Promise<ExhibitItem | undefined> {
-  await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network delay
-  return exhibitItems.find(item => item.id === id);
-}
+export async function getExhibitItemById(
+  id: string
+): Promise<ExhibitItem | undefined> {
+  const docRef = doc(db, EXHIBITS_COLLECTION, id);
+  const docSnap = await getDoc(docRef);
 
-export async function addExhibitItem(item: Omit<ExhibitItem, 'id'>): Promise<ExhibitItem> {
-  const newItem: ExhibitItem = {
-    ...item,
-    id: `${item.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
-  };
-  exhibitItems.unshift(newItem); // Add to the beginning
-  return newItem;
-}
-
-export async function updateExhibitItem(id: string, updatedData: Partial<ExhibitItem>): Promise<ExhibitItem | undefined> {
-  const itemIndex = exhibitItems.findIndex(item => item.id === id);
-  if (itemIndex > -1) {
-    exhibitItems[itemIndex] = { ...exhibitItems[itemIndex], ...updatedData };
-    return exhibitItems[itemIndex];
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as ExhibitItem;
+  } else {
+    return undefined;
   }
-  return undefined;
+}
+
+export async function addExhibitItem(
+  item: Omit<ExhibitItem, 'id'>
+): Promise<ExhibitItem> {
+    const newItem = {
+        ...item,
+        createdAt: new Date().toISOString(),
+    };
+  const docRef = await addDoc(collection(db, EXHIBITS_COLLECTION), newItem);
+  return { id: docRef.id, ...newItem } as ExhibitItem;
+}
+
+export async function updateExhibitItem(
+  id: string,
+  updatedData: Partial<ExhibitItem>
+): Promise<ExhibitItem | undefined> {
+  const docRef = doc(db, EXHIBITS_COLLECTION, id);
+  await updateDoc(docRef, updatedData);
+  const updatedDoc = await getDoc(docRef);
+  return { id: updatedDoc.id, ...updatedDoc.data() } as ExhibitItem;
 }
 
 export async function deleteExhibitItem(id: string): Promise<void> {
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
-    const itemIndex = exhibitItems.findIndex(item => item.id === id);
-    if (itemIndex > -1) {
-      exhibitItems.splice(itemIndex, 1);
-    }
+  const docRef = doc(db, EXHIBITS_COLLECTION, id);
+  await deleteDoc(docRef);
 }

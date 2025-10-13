@@ -7,6 +7,27 @@ import { updateExhibitImage } from '@/ai/flows/update-exhibit-image';
 import { chatAboutExhibitContext } from '@/ai/flows/chat-about-exhibit-context';
 import { addExhibitItem, deleteExhibitItem, getExhibitItemById, updateExhibitItem } from './data';
 import type { ChatMessage, ExhibitItem, ExhibitMetadata } from './types';
+import { getStorage } from 'firebase-admin/storage';
+
+async function uploadImageToStorage(photoDataUri: string, itemId: string, imageIndex: number): Promise<string> {
+    const bucket = getStorage().bucket();
+    const extension = photoDataUri.split(';')[0].split('/')[1];
+    const fileName = `exhibits/${itemId}/image_${imageIndex}.${extension}`;
+    const file = bucket.file(fileName);
+    
+    const buffer = Buffer.from(photoDataUri.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+    
+    await file.save(buffer, {
+        metadata: {
+            contentType: `image/${extension}`,
+        },
+    });
+
+    // Make the file public and get the URL
+    await file.makePublic();
+    return file.publicUrl();
+}
+
 
 export async function analyzeImageAction(formData: FormData): Promise<{ error?: string, newItemId?: string }> {
   const photoDataUri = formData.get('image-data-uri') as string;
@@ -23,10 +44,9 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
     const finalName = name || analysisResult.metadata.name || 'Untitled Artifact';
     const finalDescription = description || analysisResult.metadata.description || 'No description provided.';
     
-    const newItemData: Omit<ExhibitItem, 'id'> = {
+    const newItemData: Omit<ExhibitItem, 'id' | 'images' | 'createdAt'> = {
       name: finalName,
       description: finalDescription,
-      images: [photoDataUri],
       metadata: {
         ...analysisResult.metadata,
         name: finalName,
@@ -34,11 +54,20 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
       },
     };
 
-    const newItem = await addExhibitItem(newItemData);
+    // Create the item in Firestore first to get an ID
+    const tempItem = { ...newItemData, images: [], createdAt: new Date().toISOString() };
+    const docRef = await addDoc(collection(getFirestore(getFirebaseAdminApp()), 'exhibits'), tempItem);
+    const newItemId = docRef.id;
 
+    // Upload the image to Cloud Storage
+    const publicUrl = await uploadImageToStorage(photoDataUri, newItemId, 0);
+
+    // Update the item with the public image URL
+    await updateExhibitItem(newItemId, { images: [publicUrl] });
+    
     revalidatePath('/');
-    revalidatePath(`/items/${newItem.id}`);
-    return { newItemId: newItem.id };
+    revalidatePath(`/items/${newItemId}`);
+    return { newItemId: newItemId };
 
   } catch (error) {
     console.error('Error in analyzeImageAction:', error);
@@ -98,9 +127,13 @@ export async function updateImageAction(itemId: string, formData: FormData): Pro
     existingMetadata: item.metadata
   });
 
+  // Upload new image to storage first
+  const newImageUrl = await uploadImageToStorage(photoDataUri, itemId, item.images.length);
+  const updatedImages = [...item.images, newImageUrl];
+
   if (result.newInfoFound && result.updatedMetadata) {
     const updatedItem: Partial<ExhibitItem> = {
-      images: [...item.images, photoDataUri],
+      images: updatedImages,
       metadata: result.updatedMetadata,
       name: result.updatedMetadata.name || item.name,
       description: result.updatedMetadata.description || item.description,
@@ -113,7 +146,7 @@ export async function updateImageAction(itemId: string, formData: FormData): Pro
     // If user forces add, we just add the image
     const forceAdd = formData.get('force-add') === 'true';
     if (forceAdd) {
-        await updateExhibitItem(itemId, { images: [...item.images, photoDataUri] });
+        await updateExhibitItem(itemId, { images: updatedImages });
         revalidatePath(`/items/${itemId}`);
         revalidatePath(`/items/${itemId}/chat`);
     }
@@ -123,9 +156,25 @@ export async function updateImageAction(itemId: string, formData: FormData): Pro
 
 export async function deleteExhibitItemAction(itemId: string): Promise<{ error?: string }> {
     try {
+        const item = await getExhibitItemById(itemId);
+        if (item && item.images) {
+            const bucket = getStorage().bucket();
+            // Delete all images from storage associated with the item
+            for (const imageUrl of item.images) {
+                try {
+                    const url = new URL(imageUrl);
+                    const path = url.pathname.substring(1); // remove leading '/'
+                    const decodedPath = decodeURIComponent(path.split('/').slice(2).join('/')); // remove bucket name
+                    await bucket.file(decodedPath).delete();
+                } catch (e) {
+                    console.error(`Failed to delete image ${imageUrl} from storage:`, e);
+                }
+            }
+        }
         await deleteExhibitItem(itemId);
         revalidatePath('/');
     } catch (error) {
+        console.error("Deletion error:", error);
         return { error: 'Failed to delete item.' };
     }
     redirect('/');
