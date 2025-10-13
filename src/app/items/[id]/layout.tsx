@@ -2,6 +2,8 @@
 import { getExhibitItemById } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { ItemDetailView } from "@/components/ItemDetailView";
+import React from "react";
+import type { ExhibitItem } from "@/lib/types";
 
 export default async function ItemDetailLayout({
   children,
@@ -16,6 +18,14 @@ export default async function ItemDetailLayout({
     notFound();
   }
 
+  // Clone the children and inject the item prop
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, { item } as { item: ExhibitItem });
+    }
+    return child;
+  });
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
@@ -27,7 +37,7 @@ export default async function ItemDetailLayout({
         <div className="lg:w-2/3">
             <ItemDetailView item={item} isTabsOnly />
             <div className="mt-6">
-                {children}
+                {childrenWithProps}
             </div>
         </div>
       </div>

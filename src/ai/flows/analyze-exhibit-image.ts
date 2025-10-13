@@ -55,8 +55,8 @@ const analyzeExhibitImagePrompt = ai.definePrompt({
     Photo: {{media url=photoDataUri}}
 
     Analyze the exhibit item and extract the following metadata:
-    - name: A suitable name for the item.
-    - description: A brief, one-paragraph description of the item.
+    - name: Generate a suitable name for the item if not obvious.
+    - description: Generate a brief, one-paragraph description of the item.
     - size: Estimate the size of the item if not explicitly known.
     - productionPeriod: The period when the item was produced.
     - productionCompany: The company that produced the item.
