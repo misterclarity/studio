@@ -36,7 +36,7 @@ const AnalyzeExhibitImageOutputSchema = z.object({
     suggestedCollection: z.string().optional().describe('Suggested collection for the exhibit item.'),
     archivingMedium: z.string().optional().describe('The suggested archiving medium for the exhibit item.'),
     topic: z.string().optional().describe('The topic of the exhibit item.'),
-    historicalContext: z_string().optional().describe('The historical context of the exhibit item.'),
+    historicalContext: z.string().optional().describe('The historical context of the exhibit item.'),
   }).describe('Extracted metadata of the exhibit item.'),
 });
 export type AnalyzeExhibitImageOutput = z.infer<typeof AnalyzeExhibitImageOutputSchema>;
