@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils';
 export const metadata: Metadata = {
   title: 'ExhibitAI',
   description: 'AI driven technical museum exhibit classifier.',
+  icons: {
+    icon: [],
+  }
 };
 
 export default function RootLayout({
