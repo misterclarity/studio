@@ -1,3 +1,40 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "vintage-radio",
+      "description": "A vintage wooden tabletop radio from the 1940s.",
+      "imageUrl": "https://picsum.photos/seed/radio/600/400",
+      "imageHint": "vintage radio"
+    },
+    {
+      "id": "film-camera",
+      "description": "A classic 35mm film camera with a leather case.",
+      "imageUrl": "https://picsum.photos/seed/camera/600/400",
+      "imageHint": "film camera"
+    },
+    {
+      "id": "pocket-watch",
+      "description": "An ornate gold pocket watch with intricate engravings.",
+      "imageUrl": "https://picsum.photos/seed/watch/600/400",
+      "imageHint": "pocket watch"
+    },
+    {
+      "id": "typewriter",
+      "description": "A heavy, manual typewriter from the early 20th century.",
+      "imageUrl": "https://picsum.photos/seed/typewriter/600/400",
+      "imageHint": "manual typewriter"
+    },
+    {
+      "id": "telescope",
+      "description": "A brass telescope on a wooden tripod.",
+      "imageUrl": "https://picsum.photos/seed/telescope/600/400",
+      "imageHint": "brass telescope"
+    },
+    {
+      "id": "gramophone",
+      "description": "An old gramophone with a large brass horn.",
+      "imageUrl": "https://picsum.photos/seed/gramophone/600/400",
+      "imageHint": "old gramophone"
+    }
+  ]
 }
