@@ -1,7 +1,12 @@
 import type { ExhibitItem } from './types';
 
 // This is an in-memory store. Data will be lost on server restart.
-let exhibitItems: ExhibitItem[] = [
+// We use a global to make it persistent across hot reloads in development.
+declare global {
+  var __exhibitItems: ExhibitItem[] | undefined;
+}
+
+const initialItems: ExhibitItem[] = [
   {
     id: 'vintage-radio-1',
     name: 'Vintage Sentinel Radio',
@@ -65,6 +70,17 @@ let exhibitItems: ExhibitItem[] = [
     },
   },
 ];
+
+if (process.env.NODE_ENV === 'production') {
+  global.__exhibitItems = initialItems;
+} else {
+  if (!global.__exhibitItems) {
+    global.__exhibitItems = initialItems;
+  }
+}
+
+const exhibitItems = global.__exhibitItems!;
+
 
 // Functions to interact with the in-memory store.
 // In a real application, these would interact with a database.
