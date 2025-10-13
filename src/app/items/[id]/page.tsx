@@ -1,6 +1,7 @@
 import { MetadataDisplay } from "@/components/MetadataDisplay";
 import { getExhibitItemById } from "@/lib/data";
 import { notFound } from "next/navigation";
+import { AdditionalImageUploader } from "@/components/AdditionalImageUploader";
 
 export default async function ItemDetailsPage({ params }: { params: { id: string } }) {
   const item = await getExhibitItemById(params.id);
@@ -9,8 +10,9 @@ export default async function ItemDetailsPage({ params }: { params: { id: string
   }
 
   return (
-    <div className="fade-in">
+    <div className="fade-in space-y-6">
         <MetadataDisplay itemId={item.id} initialMetadata={item.metadata} />
+        <AdditionalImageUploader item={item} />
     </div>
   );
 }

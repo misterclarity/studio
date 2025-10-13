@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { analyzeExhibitImage, type AnalyzeExhibitImageOutput } from '@/ai/flows/analyze-exhibit-image';
+import { updateExhibitImage } from '@/ai/flows/update-exhibit-image';
 import { chatAboutExhibitContext } from '@/ai/flows/chat-about-exhibit-context';
 import { addExhibitItem, getExhibitItemById, updateExhibitItem } from './data';
 import type { ChatMessage, ExhibitItem, ExhibitMetadata } from './types';
-import { PlaceHolderImages } from './placeholder-images';
 
 export async function analyzeImageAction(formData: FormData): Promise<{ error?: string, newItemId?: string }> {
   const photoDataUri = formData.get('image-data-uri') as string;
@@ -78,4 +78,44 @@ export async function getAIChatResponse(itemId: string, history: ChatMessage[]):
 export async function updateExhibitItemAction(itemId: string, data: Partial<ExhibitItem>) {
   await updateExhibitItem(itemId, data);
   revalidatePath(`/items/${itemId}`);
+  revalidatePath(`/items/${itemId}/chat`);
+}
+
+export async function updateImageAction(itemId: string, formData: FormData): Promise<{ newInfoFound: boolean, updatedMetadata?: ExhibitMetadata }> {
+  const photoDataUri = formData.get('image-data-uri') as string;
+  const item = await getExhibitItemById(itemId);
+
+  if (!photoDataUri) {
+    throw new Error('No image file provided.');
+  }
+  if (!item) {
+    throw new Error('Exhibit item not found.');
+  }
+
+  const result = await updateExhibitImage({
+    newPhotoDataUri: photoDataUri,
+    existingMetadata: item.metadata
+  });
+
+  if (result.newInfoFound && result.updatedMetadata) {
+    const updatedItem: Partial<ExhibitItem> = {
+      images: [...item.images, photoDataUri],
+      metadata: result.updatedMetadata,
+      name: result.updatedMetadata.name || item.name,
+      description: result.updatedMetadata.description || item.description,
+    };
+    await updateExhibitItem(itemId, updatedItem);
+    revalidatePath(`/items/${itemId}`);
+    revalidatePath(`/items/${itemId}/chat`);
+    return { newInfoFound: true, updatedMetadata: result.updatedMetadata };
+  } else {
+    // If user forces add, we just add the image
+    const forceAdd = formData.get('force-add') === 'true';
+    if (forceAdd) {
+        await updateExhibitItem(itemId, { images: [...item.images, photoDataUri] });
+        revalidatePath(`/items/${itemId}`);
+        revalidatePath(`/items/${itemId}/chat`);
+    }
+    return { newInfoFound: false };
+  }
 }
