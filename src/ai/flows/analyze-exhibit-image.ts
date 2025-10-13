@@ -69,7 +69,7 @@ const analyzeExhibitImagePrompt = ai.definePrompt({
     - historicalContext: Historical context of the item.
 
     Return the metadata in JSON format.
-    Ensure that all string values are properly formatted.
+    Ensure that the string for each metadata field is clean and does not include trailing punctuation (like commas or periods) unless it is grammatically part of the value itself (e.g., at the end of a full sentence in a description).
 `,
 });
 
