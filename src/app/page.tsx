@@ -36,7 +36,7 @@ export default async function Home({
         <div className="text-center py-16">
           <h2 className="text-2xl font-semibold mb-2">No Items Found</h2>
           <p className="text-muted-foreground">
-            Your search for "{query}" did not match any items. Try a different search term.
+            {query ? `Your search for "${query}" did not match any items. Try a different search term.` : "Your collection is empty. Add a new item to get started!"}
           </p>
         </div>
       )}
