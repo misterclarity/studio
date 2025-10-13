@@ -1,17 +1,8 @@
 import { getExhibitItems } from '@/lib/data';
-import { ItemGrid } from '@/components/ItemGrid';
-import { SearchBar } from '@/components/SearchBar';
-import { Suspense } from 'react';
+import { Collection } from '@/components/Collection';
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: {
-    query?: string;
-  };
-}) {
-  const query = searchParams?.query || null;
-  const items = await getExhibitItems(query);
+export default async function Home() {
+  const items = await getExhibitItems(null);
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12">
@@ -24,22 +15,7 @@ export default async function Home({
         </p>
       </div>
 
-      <div className="mb-8 max-w-2xl mx-auto">
-        <Suspense fallback={<div>Loading search...</div>}>
-          <SearchBar placeholder="Search by name, material, era..." />
-        </Suspense>
-      </div>
-
-      {items.length > 0 ? (
-        <ItemGrid items={items} />
-      ) : (
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-semibold mb-2">No Items Found</h2>
-          <p className="text-muted-foreground">
-            {query ? `Your search for "${query}" did not match any items. Try a different search term.` : "Your collection is empty. Add a new item to get started!"}
-          </p>
-        </div>
-      )}
+      <Collection items={items} />
     </div>
   );
 }
