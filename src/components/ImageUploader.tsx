@@ -33,7 +33,6 @@ export function ImageUploader() {
   const handleRemoveImage = () => {
     setFile(null);
     setPreview(null);
-    // Reset the file input
     const fileInput = document.getElementById('image-upload') as HTMLInputElement;
     if (fileInput) {
       fileInput.value = '';
@@ -42,7 +41,7 @@ export function ImageUploader() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!file) {
+    if (!preview) {
       setError('Please select an image file to upload.');
       return;
     }
@@ -51,7 +50,7 @@ export function ImageUploader() {
     setError(null);
     
     const formData = new FormData(e.currentTarget);
-    formData.append('image', file);
+    formData.append('image-data-uri', preview);
     
     try {
       const result = await analyzeImageAction(formData);
@@ -70,11 +69,11 @@ export function ImageUploader() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Item Name</Label>
+        <Label htmlFor="name">Item Name (Optional)</Label>
         <Input id="name" name="name" placeholder="e.g., Vintage Sentinel Radio" disabled={isSubmitting} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="description">Brief Description</Label>
+        <Label htmlFor="description">Brief Description (Optional)</Label>
         <Textarea id="description" name="description" placeholder="A short description of the item and its condition." disabled={isSubmitting} />
       </div>
 

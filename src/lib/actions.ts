@@ -7,29 +7,16 @@ import { addExhibitItem, getExhibitItemById } from './data';
 import type { ChatMessage, ExhibitItem, ExhibitMetadata } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
-function fileToDataUri(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      resolve(reader.result as string);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
 export async function analyzeImageAction(formData: FormData): Promise<{ error?: string, newItemId?: string }> {
-  const imageFile = formData.get('image') as File;
+  const photoDataUri = formData.get('image-data-uri') as string;
   const name = (formData.get('name') as string) || 'Untitled';
   const description = (formData.get('description') as string) || 'No description provided.';
 
-  if (!imageFile || imageFile.size === 0) {
-    return { error: 'No image file provided.' };
+  if (!photoDataUri) {
+    return { error: 'No image data provided.' };
   }
 
   try {
-    const photoDataUri = await fileToDataUri(imageFile);
-
     const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri, description });
     
     // In a real app, we'd upload the image to a storage bucket and use the URL.
