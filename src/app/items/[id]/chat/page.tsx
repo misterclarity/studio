@@ -1,8 +1,14 @@
 import { ChatInterface } from "@/components/ChatInterface";
-import type { ExhibitItem } from "@/lib/types";
+import { getExhibitItemById } from "@/lib/data";
+import { notFound } from "next/navigation";
 
-// The item is passed as a prop from the layout
-export default async function ItemChatPage({ item }: { item: ExhibitItem }) {
+export default async function ItemChatPage({ params }: { params: { id: string } }) {
+    const item = await getExhibitItemById(params.id);
+
+    if (!item) {
+        notFound();
+    }
+    
     return (
         <div className="fade-in">
             <ChatInterface itemId={item.id} />

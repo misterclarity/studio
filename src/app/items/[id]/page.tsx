@@ -1,9 +1,15 @@
 import { MetadataDisplay } from "@/components/MetadataDisplay";
 import { AdditionalImageUploader } from "@/components/AdditionalImageUploader";
-import type { ExhibitItem } from "@/lib/types";
+import { getExhibitItemById } from "@/lib/data";
+import { notFound } from "next/navigation";
 
-// The item is passed as a prop from the layout
-export default async function ItemDetailsPage({ item }: { item: ExhibitItem }) {
+export default async function ItemDetailsPage({ params }: { params: { id: string } }) {
+  const item = await getExhibitItemById(params.id);
+
+  if (!item) {
+    notFound();
+  }
+
   return (
     <div className="fade-in space-y-6">
         <MetadataDisplay itemId={item.id} initialMetadata={item.metadata} />
