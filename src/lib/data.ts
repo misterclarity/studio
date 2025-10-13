@@ -1,42 +1,37 @@
 'use server';
 
 import type { ExhibitItem } from './types';
-import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  getDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  limit
-} from 'firebase/firestore';
-import { getFirestore } from 'firebase-admin/firestore';
-import { getFirebaseAdminApp } from '@/firebase/admin';
+import { PlaceHolderImages } from './placeholder-images';
 
-// Initialize Firebase Admin for server-side operations
-const app = getFirebaseAdminApp();
-const db = getFirestore(app);
+// In-memory store for exhibit items.
+// Using `global` to preserve data across hot reloads in development.
+// In production, this will be a clean slate on every server restart.
+declare global {
+  var __exhibitItems: ExhibitItem[];
+}
 
-const EXHIBITS_COLLECTION = 'exhibits';
+const initialItems: ExhibitItem[] = [];
+
+if (process.env.NODE_ENV === 'production') {
+  global.__exhibitItems = initialItems;
+} else {
+  if (!global.__exhibitItems) {
+    global.__exhibitItems = initialItems;
+  }
+}
+
+let items: ExhibitItem[] = global.__exhibitItems;
+let nextId = items.length > 0 ? Math.max(...items.map(item => parseInt(item.id))) + 1 : 1;
+
 
 export async function getExhibitItems(
   searchQuery: string | null
 ): Promise<ExhibitItem[]> {
-  const exhibitsCollection = collection(db, EXHIBITS_COLLECTION);
-  let q = query(exhibitsCollection, orderBy('createdAt', 'desc'), limit(50));
+  await new Promise(resolve => setTimeout(resolve, 50)); // Simulate network delay
   
-  const querySnapshot = await getDocs(q);
-  let items = querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-  })) as ExhibitItem[];
-
   if (searchQuery) {
     const lowercasedQuery = searchQuery.toLowerCase();
-    items = items.filter(item => 
+    return items.filter(item => 
         (item.name && item.name.toLowerCase().includes(lowercasedQuery)) ||
         (item.description && item.description.toLowerCase().includes(lowercasedQuery)) ||
         (item.metadata && Object.values(item.metadata).some(val => 
@@ -44,45 +39,46 @@ export async function getExhibitItems(
         ))
     );
   }
-
-  return items;
+  
+  return [...items].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
 export async function getExhibitItemById(
   id: string
 ): Promise<ExhibitItem | undefined> {
-  const docRef = doc(db, EXHIBITS_COLLECTION, id);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as ExhibitItem;
-  } else {
-    return undefined;
-  }
+  await new Promise(resolve => setTimeout(resolve, 50));
+  return items.find(item => item.id === id);
 }
 
 export async function addExhibitItem(
   item: Omit<ExhibitItem, 'id'>
 ): Promise<ExhibitItem> {
-    const newItem = {
-        ...item,
-        createdAt: new Date().toISOString(),
-    };
-  const docRef = await addDoc(collection(db, EXHIBITS_COLLECTION), newItem);
-  return { id: docRef.id, ...newItem } as ExhibitItem;
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const newItem: ExhibitItem = {
+    id: String(nextId++),
+    ...item,
+  };
+  items.push(newItem);
+  return newItem;
 }
 
 export async function updateExhibitItem(
   id: string,
   updatedData: Partial<ExhibitItem>
 ): Promise<ExhibitItem | undefined> {
-  const docRef = doc(db, EXHIBITS_COLLECTION, id);
-  await updateDoc(docRef, updatedData);
-  const updatedDoc = await getDoc(docRef);
-  return { id: updatedDoc.id, ...updatedDoc.data() } as ExhibitItem;
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const itemIndex = items.findIndex(item => item.id === id);
+  if (itemIndex > -1) {
+    items[itemIndex] = { ...items[itemIndex], ...updatedData };
+    return items[itemIndex];
+  }
+  return undefined;
 }
 
 export async function deleteExhibitItem(id: string): Promise<void> {
-  const docRef = doc(db, EXHIBITS_COLLECTION, id);
-  await deleteDoc(docRef);
+  await new Promise(resolve => setTimeout(resolve, 50));
+  const itemIndex = items.findIndex(item => item.id === id);
+  if (itemIndex > -1) {
+    items.splice(itemIndex, 1);
+  }
 }
