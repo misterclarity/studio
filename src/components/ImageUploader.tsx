@@ -64,18 +64,18 @@ export function ImageUploader() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="space-y-2">
-        <Label htmlFor="name">Item Name</Label>
-        <Input id="name" name="name" placeholder="e.g., Vintage Sentinel Radio" required disabled={isSubmitting} />
+        <Label htmlFor="name">Item Name (Optional)</Label>
+        <Input id="name" name="name" placeholder="e.g., Vintage Sentinel Radio" disabled={isSubmitting} />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="description">Brief Description</Label>
-        <Textarea id="description" name="description" placeholder="A short description of the item and its condition." required disabled={isSubmitting} />
+        <Label htmlFor="description">Brief Description (Optional)</Label>
+        <Textarea id="description" name="description" placeholder="A short description of the item and its condition." disabled={isSubmitting} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="image-upload" className="text-base">Upload Image</Label>
         <div className="relative flex justify-center items-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer hover:border-accent transition-colors bg-card/50">
-          <Input id="image-upload" name="image" type="file" accept="image/*" className="sr-only" onChange={handleFileChange} disabled={isSubmitting || !!preview} />
+          <Input id="image-upload" name="image" type="file" accept="image/*" className="sr-only" onChange={handleFileChange} disabled={isSubmitting || !!preview} required />
           {preview ? (
             <>
               <Image src={preview} alt="Image preview" fill className="object-contain rounded-lg p-2" />

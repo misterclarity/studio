@@ -20,14 +20,11 @@ function fileToDataUri(file: File): Promise<string> {
 
 export async function analyzeImageAction(formData: FormData): Promise<{ error?: string, newItemId?: string }> {
   const imageFile = formData.get('image') as File;
-  const name = formData.get('name') as string;
-  const description = formData.get('description') as string;
+  const name = (formData.get('name') as string) || 'Untitled';
+  const description = (formData.get('description') as string) || 'No description provided.';
 
   if (!imageFile || imageFile.size === 0) {
     return { error: 'No image file provided.' };
-  }
-  if (!name || !description) {
-    return { error: 'Please provide a name and description.' };
   }
 
   try {
