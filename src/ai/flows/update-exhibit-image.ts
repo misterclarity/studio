@@ -21,6 +21,8 @@ const UpdateExhibitImageInputSchema = z.object({
       'A new photo of the museum exhibit, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
   existingMetadata: z.custom<ExhibitMetadata>().describe('The existing metadata of the exhibit item.'),
+  // This will be added in the flow, not passed by the user directly.
+  existingMetadataJson: z.string().optional().describe('The stringified JSON of the existing metadata.'),
 });
 export type UpdateExhibitImageInput = z.infer<typeof UpdateExhibitImageInputSchema>;
 
@@ -31,7 +33,7 @@ const UpdateExhibitImageOutputSchema = z.object({
 });
 export type UpdateExhibitImageOutput = z.infer<typeof UpdateExhibitImageOutputSchema>;
 
-export async function updateExhibitImage(input: UpdateExhibitImageInput): Promise<UpdateExhibitImageOutput> {
+export async function updateExhibitImage(input: Omit<UpdateExhibitImageInput, 'existingMetadataJson'>): Promise<UpdateExhibitImageOutput> {
   return updateExhibitImageFlow(input);
 }
 
@@ -48,7 +50,7 @@ const prompt = ai.definePrompt({
 
 **Existing Metadata:**
 \`\`\`json
-{{{jsonStringify existingMetadata}}}
+{{{existingMetadataJson}}}
 \`\`\`
 
 **New Photo to Analyze:**
@@ -65,15 +67,13 @@ const prompt = ai.definePrompt({
 const updateExhibitImageFlow = ai.defineFlow(
   {
     name: 'updateExhibitImageFlow',
-    inputSchema: UpdateExhibitImageInputSchema,
+    inputSchema: UpdateExhibitImageInputSchema.omit({ existingMetadataJson: true }),
     outputSchema: UpdateExhibitImageOutputSchema,
   },
   async (input) => {
-    // Genkit/Handlebars doesn't have a built-in JSON stringify helper, so we do it here.
     const { output } = await prompt({
         ...input,
-        // @ts-ignore - a little hack to pass a stringified version to the prompt
-        jsonStringify: (obj: any) => JSON.stringify(obj, null, 2),
+        existingMetadataJson: JSON.stringify(input.existingMetadata, null, 2),
     });
     return output!;
   }
