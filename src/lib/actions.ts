@@ -13,20 +13,16 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
   const description = (formData.get('description') as string) || 'No description provided.';
 
   if (!photoDataUri) {
-    return { error: 'No image data provided.' };
+    return { error: 'No image file provided.' };
   }
 
   try {
     const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri, description });
-    
-    // In a real app, we'd upload the image to a storage bucket and use the URL.
-    // For this example, we'll use a random placeholder image to avoid storing large data URIs.
-    const placeholderImage = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
 
     const newItemData: Omit<ExhibitItem, 'id'> = {
       name,
       description,
-      images: [placeholderImage.imageUrl],
+      images: [photoDataUri],
       metadata: {
         ...analysisResult.metadata,
         name,
