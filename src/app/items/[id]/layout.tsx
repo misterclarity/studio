@@ -8,6 +8,9 @@ import { ItemTabs } from "@/components/ItemTabs";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
@@ -70,6 +73,12 @@ export default function ItemDetailLayout({
                   </div>
                 </DialogTrigger>
                 <DialogContent className="max-w-3xl h-auto">
+                    <DialogHeader>
+                        <DialogTitle className="font-headline text-2xl text-primary">{item.name} - Image Gallery</DialogTitle>
+                        <DialogDescription>
+                            Browse through the images for this artifact.
+                        </DialogDescription>
+                    </DialogHeader>
                     <Carousel className="w-full">
                         <CarouselContent>
                             {item.images.map((image, index) => (
