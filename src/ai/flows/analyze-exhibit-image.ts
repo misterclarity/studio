@@ -27,16 +27,16 @@ const AnalyzeExhibitImageOutputSchema = z.object({
   metadata: z.object({
     name: z.string().optional().describe('A suitable name for the exhibit item.'),
     description: z.string().optional().describe('A brief, one-paragraph description of the exhibit item.'),
-    size: z.string().optional().describe('The size of the exhibit item.'),
+    size: z.string().optional().describe('The estimated size of the exhibit item.'),
     productionPeriod: z.string().optional().describe('The production period of the exhibit item.'),
     productionCompany: z.string().optional().describe('The company that produced the exhibit item.'),
     materials: z.string().optional().describe('The materials used to create the exhibit item.'),
     colors: z.string().optional().describe('The colors of the exhibit item.'),
-    weight: z.string().optional().describe('The weight of the exhibit item.'),
+    weight: z.string().optional().describe('The estimated weight of the exhibit item.'),
     suggestedCollection: z.string().optional().describe('Suggested collection for the exhibit item.'),
     archivingMedium: z.string().optional().describe('The suggested archiving medium for the exhibit item.'),
     topic: z.string().optional().describe('The topic of the exhibit item.'),
-    historicalContext: z.string().optional().describe('The historical context of the exhibit item.'),
+    historicalContext: z_string().optional().describe('The historical context of the exhibit item.'),
   }).describe('Extracted metadata of the exhibit item.'),
 });
 export type AnalyzeExhibitImageOutput = z.infer<typeof AnalyzeExhibitImageOutputSchema>;
@@ -54,15 +54,15 @@ const analyzeExhibitImagePrompt = ai.definePrompt({
     Description: {{{description}}}
     Photo: {{media url=photoDataUri}}
 
-    Analyze the exhibit item and extract the following metadata if present:
+    Analyze the exhibit item and extract the following metadata:
     - name: A suitable name for the item.
     - description: A brief, one-paragraph description of the item.
-    - size: Size of the item.
+    - size: Estimate the size of the item if not explicitly known.
     - productionPeriod: The period when the item was produced.
     - productionCompany: The company that produced the item.
     - materials: Materials used to create the item.
     - colors: Colors of the item.
-    - weight: Weight of the item.
+    - weight: Estimate the weight of the item if not explicitly known.
     - suggestedCollection: Suggested collection for the item.
     - archivingMedium: Suggested archiving medium for the item.
     - topic: Topic of the item.
