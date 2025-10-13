@@ -6,15 +6,9 @@ declare global {
   var __exhibitItems: ExhibitItem[] | undefined;
 }
 
+// Ensure the collection is always reset to an empty array.
 const initialItems: ExhibitItem[] = [];
-
-if (process.env.NODE_ENV === 'production') {
-  global.__exhibitItems = initialItems;
-} else {
-  if (!global.__exhibitItems) {
-    global.__exhibitItems = initialItems;
-  }
-}
+global.__exhibitItems = initialItems;
 
 const exhibitItems = global.__exhibitItems!;
 
