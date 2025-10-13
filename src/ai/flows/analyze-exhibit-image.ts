@@ -25,6 +25,8 @@ export type AnalyzeExhibitImageInput = z.infer<typeof AnalyzeExhibitImageInputSc
 
 const AnalyzeExhibitImageOutputSchema = z.object({
   metadata: z.object({
+    name: z.string().optional().describe('A suitable name for the exhibit item.'),
+    description: z.string().optional().describe('A brief, one-paragraph description of the exhibit item.'),
     size: z.string().optional().describe('The size of the exhibit item.'),
     productionPeriod: z.string().optional().describe('The production period of the exhibit item.'),
     productionCompany: z.string().optional().describe('The company that produced the exhibit item.'),
@@ -47,12 +49,14 @@ const analyzeExhibitImagePrompt = ai.definePrompt({
   name: 'analyzeExhibitImagePrompt',
   input: {schema: AnalyzeExhibitImageInputSchema},
   output: {schema: AnalyzeExhibitImageOutputSchema},
-  prompt: `You are an AI expert in analyzing museum exhibits. Extract all available metadata from the provided image and description.
+  prompt: `You are an AI expert in analyzing museum exhibits. Generate a suitable name and a brief description for the item. Also, extract all available metadata from the provided image and description.
 
     Description: {{{description}}}
     Photo: {{media url=photoDataUri}}
 
     Analyze the exhibit item and extract the following metadata if present:
+    - name: A suitable name for the item.
+    - description: A brief, one-paragraph description of the item.
     - size: Size of the item.
     - productionPeriod: The period when the item was produced.
     - productionCompany: The company that produced the item.

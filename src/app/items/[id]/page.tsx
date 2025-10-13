@@ -10,7 +10,7 @@ export default async function ItemDetailsPage({ params }: { params: { id: string
 
   return (
     <div className="fade-in">
-        <MetadataDisplay metadata={item.metadata} />
+        <MetadataDisplay itemId={item.id} initialMetadata={item.metadata} />
     </div>
   );
 }

@@ -3,36 +3,49 @@
 import { revalidatePath } from 'next/cache';
 import { analyzeExhibitImage, type AnalyzeExhibitImageOutput } from '@/ai/flows/analyze-exhibit-image';
 import { chatAboutExhibitContext } from '@/ai/flows/chat-about-exhibit-context';
-import { addExhibitItem, getExhibitItemById } from './data';
+import { addExhibitItem, getExhibitItemById, updateExhibitItem } from './data';
 import type { ChatMessage, ExhibitItem, ExhibitMetadata } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 export async function analyzeImageAction(formData: FormData): Promise<{ error?: string, newItemId?: string }> {
   const photoDataUri = formData.get('image-data-uri') as string;
-  const name = (formData.get('name') as string) || 'Untitled';
-  const description = (formData.get('description') as string) || 'No description provided.';
+  const name = formData.get('name') as string;
+  const description = formData.get('description') as string;
+  const file = formData.get('image') as File;
 
-  if (!photoDataUri) {
+  if (!photoDataUri && !file) {
     return { error: 'No image file provided.' };
   }
 
-  try {
-    const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri, description });
+  let dataUri = photoDataUri;
+  if (file) {
+    const buffer = await file.arrayBuffer();
+    const base64 = Buffer.from(buffer).toString('base64');
+    dataUri = `data:${file.type};base64,${base64}`;
+  }
 
+
+  try {
+    const analysisResult: AnalyzeExhibitImageOutput = await analyzeExhibitImage({ photoDataUri: dataUri, description });
+
+    const finalName = name || analysisResult.metadata.name || 'Untitled';
+    const finalDescription = description || analysisResult.metadata.description || 'No description provided.';
+    
     const newItemData: Omit<ExhibitItem, 'id'> = {
-      name,
-      description,
-      images: [photoDataUri],
+      name: finalName,
+      description: finalDescription,
+      images: [dataUri],
       metadata: {
         ...analysisResult.metadata,
-        name,
-        description,
+        name: finalName,
+        description: finalDescription,
       },
     };
 
     const newItem = await addExhibitItem(newItemData);
 
     revalidatePath('/');
+    revalidatePath(`/items/${newItem.id}`);
     return { newItemId: newItem.id };
 
   } catch (error) {
@@ -68,4 +81,10 @@ export async function getAIChatResponse(itemId: string, history: ChatMessage[]):
         console.error('Error in getAIChatResponse:', error);
         return { role: 'assistant', content: 'There was an issue communicating with the AI. Please try again later.'}
     }
+}
+
+
+export async function updateExhibitItemAction(itemId: string, data: Partial<ExhibitItem>) {
+  await updateExhibitItem(itemId, data);
+  revalidatePath(`/items/${itemId}`);
 }
