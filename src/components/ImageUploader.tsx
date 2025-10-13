@@ -51,6 +51,7 @@ export function ImageUploader() {
     setError(null);
     
     const formData = new FormData(e.currentTarget);
+    formData.append('image', file);
     
     try {
       const result = await analyzeImageAction(formData);
