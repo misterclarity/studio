@@ -46,8 +46,8 @@ export async function analyzeImageAction(formData: FormData): Promise<{ error?: 
 
   } catch (error) {
     console.error('Error in analyzeImageAction:', error);
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-    return { error: `Failed to analyze image: ${errorMessage}` };
+    const errorMessage = error instanceof Error ? error.message : JSON.stringify(error);
+    return { error: `An unexpected error occurred during analysis: ${errorMessage}` };
   }
 }
 

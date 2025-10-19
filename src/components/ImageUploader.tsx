@@ -58,9 +58,12 @@ export function ImageUploader() {
         setError(result.error);
       } else if (result.newItemId) {
         router.push(`/items/${result.newItemId}`);
+      } else {
+        setError('An unexpected error occurred: The server did not return an error or a new item ID.');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred. Please check the server logs.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
