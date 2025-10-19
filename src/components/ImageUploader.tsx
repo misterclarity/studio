@@ -11,6 +11,47 @@ import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Upload, X, Loader2, AlertCircle } from 'lucide-react';
 
+const MAX_IMAGE_SIZE = 1024; // Max width or height in pixels
+
+const resizeImage = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+
+        if (width > height) {
+          if (width > MAX_IMAGE_SIZE) {
+            height = Math.round((height * MAX_IMAGE_SIZE) / width);
+            width = MAX_IMAGE_SIZE;
+          }
+        } else {
+          if (height > MAX_IMAGE_SIZE) {
+            width = Math.round((width * MAX_IMAGE_SIZE) / height);
+            height = MAX_IMAGE_SIZE;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return reject(new Error('Could not get canvas context'));
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.9)); // Use JPEG for better compression
+      };
+      img.onerror = reject;
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+
 export function ImageUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -18,15 +59,21 @@ export function ImageUploader() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result as string);
-      };
-      reader.readAsDataURL(selectedFile);
+      setIsSubmitting(true); // Show loading state while resizing
+      setError(null);
+      try {
+        const resizedDataUrl = await resizeImage(selectedFile);
+        setPreview(resizedDataUrl);
+      } catch (err) {
+        setError('Failed to process image. Please try another file.');
+        console.error(err);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
   
@@ -63,7 +110,7 @@ export function ImageUploader() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred. Please check the server logs.';
-      setError(errorMessage);
+      setError(`Analysis Failed: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -94,9 +141,18 @@ export function ImageUploader() {
             </>
           ) : (
              <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-full cursor-pointer">
-                <Upload className="h-10 w-10 text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground"><span className="font-semibold text-accent">Click to upload</span> or drag and drop</p>
-                <p className="text-xs text-muted-foreground">PNG, JPG, or other image formats</p>
+                {isSubmitting ? (
+                    <>
+                        <Loader2 className="h-10 w-10 text-muted-foreground animate-spin mb-2" />
+                        <p className="text-sm text-muted-foreground">Processing image...</p>
+                    </>
+                ) : (
+                    <>
+                        <Upload className="h-10 w-10 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground"><span className="font-semibold text-accent">Click to upload</span> or drag and drop</p>
+                        <p className="text-xs text-muted-foreground">PNG, JPG, or other image formats</p>
+                    </>
+                )}
              </label>
           )}
         </div>
