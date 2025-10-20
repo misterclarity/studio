@@ -1,3 +1,5 @@
+'use client';
+
 import { ImageUploader } from '@/components/ImageUploader';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 

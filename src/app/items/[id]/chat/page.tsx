@@ -1,17 +1,26 @@
-import { ChatInterface } from "@/components/ChatInterface";
-import { getExhibitItemById } from "@/lib/data";
-import { notFound } from "next/navigation";
+'use client';
 
-export default async function ItemChatPage({ params }: { params: { id: string } }) {
-    const item = await getExhibitItemById(params.id);
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
-    if (!item) {
-        notFound();
-    }
-    
+export default function ItemChatPage() {
     return (
-        <div className="fade-in">
-            <ChatInterface itemId={item.id} />
-        </div>
+        <Card>
+            <CardContent className="pt-6">
+                <Alert>
+                    <AlertTitle>Chat Not Available</AlertTitle>
+                    <AlertDescription>
+                        AI chat is not available for temporarily analyzed items. To use this feature, data persistence would need to be enabled.
+                        <div className="mt-4">
+                            <Button asChild variant="outline">
+                                <Link href="/">Return to Collection</Link>
+                            </Button>
+                        </div>
+                    </AlertDescription>
+                </Alert>
+            </CardContent>
+        </Card>
     );
 }

@@ -1,8 +1,6 @@
-
 'use client';
 
 import Image from "next/image";
-import { ItemTabs } from "@/components/ItemTabs";
 import {
   Dialog,
   DialogContent,
@@ -19,13 +17,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import type { ExhibitItem } from "@/lib/types";
-import { DeleteButton } from "./DeleteButton";
 
-export function ItemDetailView({ item, isTabsOnly = false }: { item: ExhibitItem, isTabsOnly?: boolean }) {
-
-  if (isTabsOnly) {
-    return <ItemTabs itemId={item.id} />;
-  }
+export function ItemDetailView({ item }: { item: ExhibitItem }) {
   
   return (
     <>
@@ -77,7 +70,6 @@ export function ItemDetailView({ item, isTabsOnly = false }: { item: ExhibitItem
       </Dialog>
       <div className="flex justify-between items-start mt-6">
         <h1 className="font-headline text-3xl lg:text-4xl font-bold text-primary">{item.name}</h1>
-        <DeleteButton itemId={item.id} />
       </div>
       <p className="mt-2 text-lg text-foreground/80">{item.description}</p>
     </>

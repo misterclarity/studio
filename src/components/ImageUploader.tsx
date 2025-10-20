@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -104,10 +103,13 @@ export function ImageUploader() {
       const result = await analyzeImageAction(formData);
       if (result.error) {
         setError(result.error);
-      } else if (result.newItemId) {
-        router.push(`/items/${result.newItemId}`);
+      } else if (result.newItem) {
+        // Here's the key change: Save to sessionStorage
+        const newItemWithId = { ...result.newItem, id: 'last-analysis' };
+        sessionStorage.setItem('analyzedArtifact', JSON.stringify(newItemWithId));
+        router.push(`/items/analysis`);
       } else {
-        setError('An unexpected error occurred: The server did not return an error or a new item ID.');
+        setError('An unexpected error occurred: The server did not return an error or a new item.');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred. Please check the server logs.';

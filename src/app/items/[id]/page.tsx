@@ -1,19 +1,21 @@
-import { MetadataDisplay } from "@/components/MetadataDisplay";
-import { AdditionalImageUploader } from "@/components/AdditionalImageUploader";
-import { getExhibitItemById } from "@/lib/data";
-import { notFound } from "next/navigation";
+'use client';
 
-export default async function ItemDetailsPage({ params }: { params: { id: string } }) {
-  const item = await getExhibitItemById(params.id);
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-  if (!item) {
-    notFound();
-  }
+// This page now redirects because data is handled by the analysis-specific page.
+export default function ItemDetailsPage({ params }: { params: { id: string } }) {
+  const router = useRouter();
+  
+  useEffect(() => {
+    // If someone lands here directly, redirect them to the home page,
+    // as there's no persistent data to show for a specific ID.
+    // The only valid "item" page is the temporary one at /items/analysis.
+    if (params.id !== 'analysis') {
+      router.replace('/');
+    }
+  }, [router, params.id]);
 
-  return (
-    <div className="fade-in space-y-6">
-        <MetadataDisplay itemId={item.id} initialMetadata={item.metadata} />
-        <AdditionalImageUploader item={item} />
-    </div>
-  );
+  // Render nothing while redirecting
+  return null;
 }
